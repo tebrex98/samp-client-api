@@ -59,7 +59,7 @@ pub fn version() -> Version {
             let version = match (major, minor, rc) {
                 (3, 7, 0) => Version::V037,
                 (3, 7, 2) => Version::V037R3,
-                (3, 7, 4) => Version::V03DL,
+                (3, 8, 0) => Version::V03DL,
                 _         => Version::Unknown,
             };
 
