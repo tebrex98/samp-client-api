@@ -9,6 +9,7 @@ pub mod players;
 pub mod spawnscreen;
 pub mod v037;
 pub mod v037r3;
+pub mod v03dl;    // SA:MP 0.3.DL-R1
 pub mod version;
 
 use version::{version, Version};
@@ -23,7 +24,7 @@ pub type D3DCOLOR = std::os::raw::c_ulong;
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct CStdString {
-    bytes: [u8; 16], // it's like union
+    bytes: [u8; 16],
     len: u32,
     capacity: u32,
 }
@@ -115,6 +116,20 @@ impl From<v037::Gamestate> for Gamestate {
     }
 }
 
+// v03dl::Gamestate je isti tip kao v037r3::Gamestate (kopija strukturno)
+impl From<v03dl::Gamestate> for Gamestate {
+    fn from(state: v03dl::Gamestate) -> Gamestate {
+        match state {
+            v03dl::Gamestate::None => Gamestate::None,
+            v03dl::Gamestate::WaitConnect => Gamestate::WaitConnect,
+            v03dl::Gamestate::Connecting => Gamestate::Connecting,
+            v03dl::Gamestate::Connected => Gamestate::Connected,
+            v03dl::Gamestate::AwaitJoin => Gamestate::AwaitJoin,
+            v03dl::Gamestate::Restarting => Gamestate::Restarting,
+        }
+    }
+}
+
 pub fn gamestate() -> Gamestate {
     match version() {
         Version::V037 => v037::CNetGame::get()
@@ -122,6 +137,10 @@ pub fn gamestate() -> Gamestate {
             .unwrap_or(Gamestate::None),
 
         Version::V037R3 => v037r3::CNetGame::get()
+            .map(|netgame| netgame.gamestate().into())
+            .unwrap_or(Gamestate::None),
+
+        Version::V03DL => v03dl::CNetGame::get()
             .map(|netgame| netgame.gamestate().into())
             .unwrap_or(Gamestate::None),
 

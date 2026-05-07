@@ -10,8 +10,9 @@ static mut VERSION: Version = Version::Unknown;
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq)]
 pub enum Version {
     V037,
-    V037R2, // also unsupported
+    V037R2,  // unsupported
     V037R3,
+    V03DL,   // SA:MP 0.3.DL-R1
     Unknown,
 }
 
@@ -28,14 +29,13 @@ pub fn version() -> Version {
             }
 
             let mut buffer = vec![0u8; size as usize];
-
             let buffer_ptr = buffer.as_mut_ptr() as *mut _;
 
             if GetFileVersionInfoA(filename_ptr, 0, size, buffer_ptr) == 0 {
                 return Version::Unknown;
             }
 
-            let mut fileinfo_ptr: usize = 0; // pointer
+            let mut fileinfo_ptr: usize = 0;
             let mut length = 0;
 
             if VerQueryValueA(
@@ -52,12 +52,15 @@ pub fn version() -> Version {
 
             let major = fileinfo.file_version_ms & 0xFF;
             let minor = fileinfo.file_version_ls >> 16 & 0xFF;
-            let rc = fileinfo.file_version_ls & 0xFF;
+            let rc    = fileinfo.file_version_ls & 0xFF;
 
+            // SA:MP 0.3.DL-R1 prijavljuje poseban build broj.
+            // Ako DL verzija prijavljuje razlicit rc, prilagodite ovdje.
             let version = match (major, minor, rc) {
                 (3, 7, 0) => Version::V037,
                 (3, 7, 2) => Version::V037R3,
-                _ => Version::Unknown,
+                (3, 7, 4) => Version::V03DL,
+                _         => Version::Unknown,
             };
 
             VERSION = version;
